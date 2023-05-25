@@ -1,4 +1,6 @@
-﻿using System;
+// using webclient - deprecated
+
+using System;
 using System.Net;
 
 class Program
