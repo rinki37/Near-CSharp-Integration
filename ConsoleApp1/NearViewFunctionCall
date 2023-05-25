@@ -1,0 +1,54 @@
+
+//result is in ascii format
+
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        string nearRpcUrl = "https://rpc.testnet.near.org"; // Replace with the desired NEAR RPC URL
+        string contractAccountId = "dev-1682916921982-33164510679420"; // Replace with the contract account ID
+        string methodName = "get_students"; // Replace with the name of the smart contract method to call
+        string[] methodArguments = new string[] { }; // Replace with the actual method arguments
+
+        using (HttpClient client = new HttpClient())
+        {
+            // Example: Call a smart contract method
+            string encodedArguments = ConvertArgumentsToBase64(methodArguments);
+
+            string callContractJson = @"
+            {
+                ""jsonrpc"": ""2.0"",
+                ""id"": ""dontcare"",
+                ""method"": ""query"",
+                ""params"": {
+                    ""request_type"": ""call_function"",
+                    ""finality"": ""final"",
+                    ""account_id"": """ + contractAccountId + @""",
+                    ""method_name"": """ + methodName + @""",
+                    ""args_base64"": """ + encodedArguments + @"""
+                }
+            }";
+
+            StringContent content = new StringContent(callContractJson, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.PostAsync($"{nearRpcUrl}", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseJson = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseJson);
+            }
+        }
+    }
+
+    static string ConvertArgumentsToBase64(string[] arguments)
+    {
+        string argumentsJson = Newtonsoft.Json.JsonConvert.SerializeObject(arguments);
+        byte[] argumentsBytes = Encoding.UTF8.GetBytes(argumentsJson);
+        return Convert.ToBase64String(argumentsBytes);
+    }
+}
